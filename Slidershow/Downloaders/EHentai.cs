@@ -17,6 +17,11 @@ namespace Slidershow.Downloaders
             return url.StartsWith("https://e-hentai.org/g/");
         }
 
+        public override bool IsSearching()
+        {
+            return searching;
+        }
+
         protected override void Initialize()
         {
             base.Initialize();
@@ -70,8 +75,6 @@ namespace Slidershow.Downloaders
                                 string link = smallerLinks[s];
                                 Add(link);
 
-                                Console.Clear();
-                                Console.WriteLine("Found: " + Files + " / " + total);
                                 if (!searching)
                                 {
                                     Download();

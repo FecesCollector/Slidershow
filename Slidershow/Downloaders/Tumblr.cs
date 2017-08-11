@@ -17,6 +17,11 @@ namespace Slidershow.Downloaders
         RestRequest request;
         RestClient client;
 
+        public override bool IsSearching()
+        {
+            return searching;
+        }
+
         public override string GetName()
         {
             return new Uri(url).Host.Replace("www.", "").Replace(".com", "").Replace(".tumblr", "");

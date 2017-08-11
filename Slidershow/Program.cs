@@ -38,6 +38,14 @@ namespace Slidershow
             }
         }
 
+        public static bool IsDownloading
+        {
+            get
+            {
+                return downloader != null;
+            }
+        }
+
         static ManualResetEvent quitEvent = new ManualResetEvent(false);
 
         [STAThread]
@@ -59,23 +67,31 @@ namespace Slidershow
 
 
             Console.WriteLine("Slidershow Application Launched");
-            string command = "";
             while (true)
             {
-                command = Console.ReadLine();
+                string command = Console.ReadLine();
                 Run(command);
             }
         }
 
         public static void Press(Keys key)
         {
-            if(imageForm != null)
+            if (IsDownloading)
+            {
+                if (key == Keys.Escape)
+                {
+                    CancelDownload();
+                }
+                return;
+            }
+
+            if (imageForm != null)
             {
                 imageForm.Press(key);
             }
         }
 
-        static void Run(string command)
+        static bool Run(string command)
         {
             string[] parameters = command.ToLower().Split(' ');
             if (!command.Contains(' '))
@@ -99,8 +115,10 @@ namespace Slidershow
                         {
                             Get(parameters[1], false);
                         }
+
+                        return true;
                     }
-                    if (parameters[0] == "hide" || parameters[0] == "unhide")
+                    else if (parameters[0] == "hide" || parameters[0] == "unhide")
                     {
                         Check();
                         if (parameters[1] == "all")
@@ -127,7 +145,7 @@ namespace Slidershow
                             }
                         }
                     }
-                    if (parameters[0] == "convert")
+                    else if (parameters[0] == "convert")
                     {
                         Check();
                         if (parameters[1] == "all")
@@ -154,7 +172,7 @@ namespace Slidershow
                             }
                         }
                     }
-                    if (parameters[0] == "load")
+                    else if (parameters[0] == "load")
                     {
                         Check();
                         List<string> galleries = Directory.GetDirectories("Galleries").ToList();
@@ -175,7 +193,7 @@ namespace Slidershow
                             Console.WriteLine("Error: Second parameter isnt a valid number (" + parameters[1] + ")");
                         }
                     }
-                    if (parameters[0] == "delete")
+                    else if (parameters[0] == "delete")
                     {
                         Check();
                         if (parameters[1] == "all")
@@ -239,10 +257,30 @@ namespace Slidershow
                     Environment.Exit(0);
                 }
             }
+
+            return false;
         }
 
+        public static void CancelDownload()
+        {
+            if(IsDownloading)
+            {
+                if(downloader.IsSearching())
+                {
+                    Console.WriteLine("Search cancelled");
+                }
+                else
+                {
+                    Console.WriteLine("Download cancelled");
+                }
+                downloader.Stop();
+            }
+        }
+        
         public static void Get(string url, bool useGeneric)
         {
+            interceptor = new KeyIntercept();
+            
             if (!useGeneric)
             {
                 var downloaders = AppDomain.CurrentDomain.GetAssemblies().SelectMany(assembly => assembly.GetTypes()).Where(type => type.IsSubclassOf(typeof(Downloader))).ToList();
@@ -275,9 +313,14 @@ namespace Slidershow
         
         static void OnFinish(int downloads)
         {
-            Console.WriteLine("Finished downloading " + downloader.name + " (" + downloads + ")");
+             Console.WriteLine("Finished downloading " + (IsDownloading ? downloader.name : "") + " (" + downloads + ")");
 
             downloader = null;
+            if (interceptor != null)
+            {
+                interceptor.Die();
+                interceptor = null;
+            }
             GC.Collect();
         }
 
@@ -306,7 +349,7 @@ namespace Slidershow
                 Directory.CreateDirectory("Galleries");
             }
 
-            if(downloader != null)
+            if(IsDownloading)
             {
                 if (!Directory.Exists("Galleries/" + downloader.name))
                 {

@@ -7,6 +7,11 @@ namespace Slidershow.Downloaders
     {
         bool searching = true;
 
+        public override bool IsSearching()
+        {
+            return searching;
+        }
+
         public override bool Matches(string url)
         {
             return true;

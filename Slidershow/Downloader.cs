@@ -22,6 +22,7 @@ namespace Slidershow
         public abstract bool Matches(string url);
         public abstract void Search();
         public abstract void Stop();
+        public abstract bool IsSearching();
 
         List<string> pendingFiles = new List<string>();
         public int downloads;
