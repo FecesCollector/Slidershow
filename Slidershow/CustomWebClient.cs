@@ -15,6 +15,7 @@ namespace Slidershow
         protected override WebRequest GetWebRequest(Uri address)
         {
             WebRequest request = base.GetWebRequest(address);
+            request.Timeout = 6000;
 
             HttpWebRequest webRequest = request as HttpWebRequest;
             if (webRequest != null)

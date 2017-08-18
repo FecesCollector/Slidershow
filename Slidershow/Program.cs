@@ -21,23 +21,7 @@ namespace Slidershow
         public static Gallery current;
         public static List<Extractor> extratorTypes = new List<Extractor>();
         public static KeyIntercept interceptor;
-
-        public static int Width
-        {
-            get
-            {
-                return Screen.PrimaryScreen.Bounds.Width;
-            }
-        }
-
-        public static int Height
-        {
-            get
-            {
-                return Screen.PrimaryScreen.Bounds.Height;
-            }
-        }
-
+        
         public static bool IsDownloading
         {
             get

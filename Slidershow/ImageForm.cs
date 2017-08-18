@@ -7,52 +7,37 @@ namespace Slidershow
 {
     public class ImageForm : Form
     {
-        bool fullscreen;
         public ImageWindow window;
+        int currentDisplay = 0;
+        public Screen[] allScreens;
 
-        public bool Fullscreen
+        public int CurrentDisplay
         {
             get
             {
-                return fullscreen;
+                return currentDisplay + 1;
             }
-            set
+        }
+
+        public Screen CurrentScreen
+        {
+            get
             {
-                fullscreen = value;
-                window.Dispatcher.Invoke(SetFullscreen);
+                return allScreens[currentDisplay];
             }
         }
         
-        public void SetFullscreen()
-        {
-            if (fullscreen)
-            {
-                BackColor = Color.Black;
-                TopMost = true;
-            }
-            else
-            {
-                BackColor = Color.Lime;
-                TopMost = false;
-            }
-
-            window.Draw();
-        }
-
         public ImageForm()
         {
-            Top = 0;
-            Left = 0;
-            Width = Program.Width;
-            Height = Program.Height;
-            
+            allScreens = Screen.AllScreens;
+            StartPosition = FormStartPosition.Manual;
             AllowTransparency = true;
             BackgroundImageLayout = ImageLayout.Zoom;
             SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.DoubleBuffer | ControlStyles.SupportsTransparentBackColor, true);
             TransparencyKey = Color.Lime;
             FormBorderStyle = FormBorderStyle.None;
 
-            window = new ImageWindow();
+            window = new ImageWindow(this);
             System.Windows.Forms.Integration.ElementHost host = new System.Windows.Forms.Integration.ElementHost()
             {
                 Dock = DockStyle.Fill,
@@ -63,9 +48,45 @@ namespace Slidershow
             
             Controls.Add(host);
 
-            Fullscreen = false;
+            Screen screen = allScreens[0];
+            Left = screen.Bounds.Width;
+            Top = screen.Bounds.Height;
+            Location = screen.Bounds.Location;
+            Width = screen.WorkingArea.Width;
+            Height = screen.WorkingArea.Height;
+
+            BackColor = Color.Black;
+            TopMost = true;
         }
 
+        public void CycleDisplays()
+        {
+            window.Dispatcher.Invoke(SetCycleDisplay);
+        }
+
+        void SetCycleDisplay()
+        {
+            currentDisplay++;
+            if (currentDisplay >= allScreens.Length)
+            {
+                currentDisplay = 0;
+            }
+
+            Screen screen = allScreens[currentDisplay];
+
+            SuspendLayout();
+
+            Left = screen.Bounds.Width;
+            Top = screen.Bounds.Height;
+            Location = screen.Bounds.Location;
+            Width = screen.WorkingArea.Width;
+            Height = screen.WorkingArea.Height;
+
+            ResumeLayout();
+
+            window.SetSource();
+            window.Draw();
+        }
 
         public void Press(Keys key)
         {
@@ -86,9 +107,9 @@ namespace Slidershow
                 current.Load();
                 refesh = true;
             }
-            if (key == Keys.F)
+            if (key == Keys.S)
             {
-                Fullscreen = !Fullscreen;
+                CycleDisplays();
             }
             if (key == Keys.G)
             {

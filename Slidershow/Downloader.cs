@@ -87,7 +87,8 @@ namespace Slidershow
         public void Add(string url)
         {
             pendingFiles.Add(url);
-            Console.WriteLine("Found: " + pendingFiles.Count + ", " + url);
+            string friendlyName = Path.GetFileName(url);
+            Console.WriteLine("Found: " + pendingFiles.Count + ", " + friendlyName);
         }
 
         public int Files
@@ -103,11 +104,11 @@ namespace Slidershow
             Program.Check();
             await Task.Delay(0);
             
-            Console.WriteLine("Downloaded: 0 / " + pendingFiles.Count);
+            Console.WriteLine("Download starting");
 
             for (int i = 0; i < pendingFiles.Count;i++)
             {
-                WebClient webClient = new WebClient();
+                CustomWebClient webClient = new CustomWebClient();
 
                 string fileName = "Galleries/" + name + "/" + Path.GetFileName(pendingFiles[i]);
                 if (!File.Exists(fileName) && !(pendingFiles[i] == "" || pendingFiles[i] == null || pendingFiles[i] == string.Empty))
