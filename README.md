@@ -11,6 +11,8 @@ This is a tool that downloads media files from websites.
   7. `convert <index or all>` - converts webm files to mp4 files.
   8. `delete <index or all>` - deletes a directory.
   9. `exit` - closes the application.
+  10. `open` - Opens root directory in file explorer.
+  11. `combine <id1> <id2>` - Combines two directories into one. (Doesnt delete the original ones)
   
 ## Examples:
 1. `get http://ferrohound.tumblr.com/` - This will download media using the Tumblr preset.
