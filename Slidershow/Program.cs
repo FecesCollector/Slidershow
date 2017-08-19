@@ -120,12 +120,12 @@ namespace Slidershow
                                 }
                                 else
                                 {
-                                    Console.WriteLine("Error: Out of range");
+                                    Console.WriteLine("Error: First parameter out of range");
                                 }
                             }
                             else
                             {
-                                Console.WriteLine("Error: Second parameter isnt a valid number (" + parameters[1] + ")");
+                                Console.WriteLine("Error: First parameter isnt a valid number (" + parameters[1] + ")");
                             }
                         }
                     }
@@ -147,13 +147,63 @@ namespace Slidershow
                                 }
                                 else
                                 {
-                                    Console.WriteLine("Error: Out of range");
+                                    Console.WriteLine("Error: First parameter out of range");
                                 }
                             }
                             else
                             {
-                                Console.WriteLine("Error: Second parameter isnt a valid number (" + parameters[1] + ")");
+                                Console.WriteLine("Error: First parameter isnt a valid number (" + parameters[1] + ")");
                             }
+                        }
+                    }
+                    else if(parameters[0] == "combine")
+                    {
+                        if(parameters.Length == 3)
+                        {
+                            Check();
+                            List<string> galleries = Directory.GetDirectories("Galleries").ToList();
+                            if (int.TryParse(parameters[1], out int sourceId))
+                            {
+                                if (sourceId >= 0 && sourceId < galleries.Count)
+                                {
+                                    if (int.TryParse(parameters[2], out int targetId))
+                                    {
+                                        if (targetId >= 0 && targetId < galleries.Count)
+                                        {
+                                            DirectoryInfo source = new DirectoryInfo(galleries[sourceId]);
+                                            DirectoryInfo target = new DirectoryInfo(galleries[targetId]);
+
+                                            string name = sourceId + "+" + targetId + " combined";
+                                            DirectoryInfo dest = new DirectoryInfo("Galleries/" + name);
+
+                                            CopyAll(source, dest);
+                                            CopyAll(target, dest);
+
+                                            Console.WriteLine("Combined into "+name);
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("Error: Second parameter out of range");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("Error: Second parameter isnt a valid number (" + parameters[2] + ")");
+                                    }
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Error: First parameter out of range");
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine("Error: First parameter isnt a valid number (" + parameters[1] + ")");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Error: Missing required parameters");
                         }
                     }
                     else if (parameters[0] == "load")
@@ -169,12 +219,12 @@ namespace Slidershow
                             }
                             else
                             {
-                                Console.WriteLine("Error: Out of range");
+                                Console.WriteLine("Error: First parameter out of range");
                             }
                         }
                         else
                         {
-                            Console.WriteLine("Error: Second parameter isnt a valid number (" + parameters[1] + ")");
+                            Console.WriteLine("Error: First parameter isnt a valid number (" + parameters[1] + ")");
                         }
                     }
                     else if (parameters[0] == "delete")
@@ -204,12 +254,12 @@ namespace Slidershow
                                 }
                                 else
                                 {
-                                    Console.WriteLine("Error: Out of range");
+                                    Console.WriteLine("Error: First parameter out of range");
                                 }
                             }
                             else
                             {
-                                Console.WriteLine("Error: Second parameter isnt a valid number (" + parameters[1] + ")");
+                                Console.WriteLine("Error: First parameter isnt a valid number (" + parameters[1] + ")");
                             }
                         }
                     }
@@ -260,7 +310,36 @@ namespace Slidershow
                 downloader.Stop();
             }
         }
-        
+
+        public static void CopyAll(DirectoryInfo source, DirectoryInfo target)
+        {
+            if (source.FullName.ToLower() == target.FullName.ToLower())
+            {
+                return;
+            }
+
+            // Check if the target directory exists, if not, create it.
+            if (Directory.Exists(target.FullName) == false)
+            {
+                Directory.CreateDirectory(target.FullName);
+            }
+
+            // Copy each file into it's new directory.
+            foreach (FileInfo fi in source.GetFiles())
+            {
+                fi.CopyTo(Path.Combine(target.ToString(), fi.Name), true);
+            }
+
+            // Copy each subdirectory using recursion.
+            foreach (DirectoryInfo diSourceSubDir in source.GetDirectories())
+            {
+                DirectoryInfo nextTargetSubDir =
+                    target.CreateSubdirectory(diSourceSubDir.Name);
+                CopyAll(diSourceSubDir, nextTargetSubDir);
+            }
+        }
+
+
         public static void Get(string url, bool useGeneric)
         {
             interceptor = new KeyIntercept();
