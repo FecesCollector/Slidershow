@@ -6,6 +6,8 @@ using System.Drawing;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Xaml;
+using System.Web;
+using System.Net;
 using Slidershow.Downloaders;
 using System.Threading.Tasks;
 using System.Windows.Shell;
@@ -58,6 +60,34 @@ namespace Slidershow
             }
         }
 
+        public static bool Exists(string url)
+        {
+            try
+            {
+                HttpWebRequest request = WebRequest.Create(url) as HttpWebRequest;
+                request.Method = "HEAD";
+                HttpWebResponse response;
+
+                try
+                {
+                    WebResponse webResponse = request.GetResponse();
+                    response = webResponse as HttpWebResponse; //still causes an exception even inside a catch on deleted tumblr blogs
+                }
+                catch (WebException ex)
+                {
+                    return false;
+                }
+
+                //Returns TRUE if the Status code == 200
+                response.Close();
+                return (response.StatusCode == HttpStatusCode.OK);
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
         public static void Press(Keys key)
         {
             if (IsDownloading)
@@ -77,10 +107,10 @@ namespace Slidershow
 
         static bool Run(string command)
         {
-            string[] parameters = command.ToLower().Split(' ');
+            string[] parameters = command.Split(' ');
             if (!command.Contains(' '))
             {
-                parameters = new string[] { command.ToLower() };
+                parameters = new string[] { command };
             }
 
             if (parameters.Length > 0)
@@ -90,17 +120,29 @@ namespace Slidershow
                     string rest = command.Substring(parameters[0].Length + 1);
                     if (parameters[0] == "get")
                     {
-                        Check();
-                        if (parameters.Length == 3)
+                        string url = parameters[1];
+                        if (!url.Contains("https://") && !url.Contains("http://"))
                         {
-                            Get(parameters[1], parameters[2] == "-g");
+                            url = "http://" + url;
+                        }
+
+                        if (Exists(url))
+                        {
+                            Check();
+                            if (parameters.Length == 3)
+                            {
+                                Get(url, parameters[2] == "-g");
+                            }
+                            else
+                            {
+                                Get(url, false);
+                            }
+                            return true;
                         }
                         else
                         {
-                            Get(parameters[1], false);
+                            Console.WriteLine("Error: Website doesnt exists.");
                         }
-
-                        return true;
                     }
                     else if (parameters[0] == "hide" || parameters[0] == "unhide")
                     {
@@ -264,6 +306,11 @@ namespace Slidershow
                         }
                     }
                 }
+                else if(parameters[0] == "test")
+                {
+                    string testUrl = @"http://t.umblr.com/redirect?z=https%3A%2F%2Fuploadir.com%2Fu%2Febzunh57&t=ZjA0OTRmNGJhMGU5OWEyOGU3YmNmOWNhM2U0YTliM2FlNjAzZTQ0NSxNOVpacWFLdQ%3D%3D&b=t%3AIbfmXf6abhiDX5c1mwWgIA&p=http%3A%2F%2Fellowas.tumblr.com%2Fpost%2F163295513104%2Fhello-this-was-supposed-to-be-a-quick-animation&m=1";
+                    Console.WriteLine(testUrl.UnescapeTumblr());
+                }
                 else if (parameters[0] == "open")
                 {
                     Process.Start("Galleries");
@@ -338,7 +385,6 @@ namespace Slidershow
                 CopyAll(diSourceSubDir, nextTargetSubDir);
             }
         }
-
 
         public static void Get(string url, bool useGeneric)
         {

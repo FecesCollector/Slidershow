@@ -11,13 +11,20 @@ namespace Slidershow.Extractors
         public override List<string> GetImages(string url)
         {
             List<string> images = new List<string>();
-
-            List<string> video = FindContent(GetDocument(url), "iframe", "src");
-
-            if(video.Count > 0 && video[0].Contains("/video/"))
+            if (url.Contains("t.umblr.com/redirect?"))
             {
-                List<string> files = FindContent(GetDocument(video[0]), "source", "src");
-                images.Add(files[0]+".mp4");
+                string unescaped = url.UnescapeTumblr();
+                images.Add(unescaped);
+            }
+            else
+            {
+                List<string> video = FindContent(GetDocument(url), "iframe", "src");
+
+                if (video.Count > 0 && video[0].Contains("/video/"))
+                {
+                    List<string> files = FindContent(GetDocument(video[0]), "source", "src");
+                    images.Add(files[0] + ".mp4");
+                }
             }
 
             return images;
@@ -25,7 +32,7 @@ namespace Slidershow.Extractors
 
         public override bool Match(string url)
         {
-            return url.Contains(".tumblr.com/post/");
+            return url.Contains(".tumblr.com/post/") || url.Contains("t.umblr.com/redirect?");
         }
     }
 }

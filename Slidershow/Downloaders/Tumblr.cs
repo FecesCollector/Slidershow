@@ -95,29 +95,54 @@ namespace Slidershow.Downloaders
                 {
                     break;
                 }
+
                 var temp = o as Dictionary<string, object>;
-                string imageSource = "";
                 for (int i = 0; i < temp.Count; i++)
                 {
                     string key = temp.Keys.ElementAt(i);
+                    string value = temp.Values.ElementAt(i)?.ToString();
                     if (key == "url")
                     {
-                        string url = temp.Values.ElementAt(i).ToString();
-                        ProcessLink(url);
+                        ProcessLink(value);
                     }
-                    if (key == "photo-url-1280")
+                    else if(key == "photo-caption")
                     {
-                        imageSource = temp.Values.ElementAt(i).ToString();
-                    }
-                    else if (key == "photo-url-500" && (String.IsNullOrEmpty(imageSource) || String.IsNullOrWhiteSpace(imageSource)))
-                    {
-                        imageSource = temp.Values.ElementAt(i).ToString();
-                    }
-                }
+                        List<string> links = FindLinks(value);
+                        if (links.Count == 0)
+                        {
+                            links.Add(url);
+                        }
 
-                if(!String.IsNullOrEmpty(imageSource) && !String.IsNullOrWhiteSpace(imageSource))
-                {
-                    Add(imageSource);
+                        for (int d = 0; d < links.Count; d++)
+                        {
+                            if (!searching)
+                            {
+                                Download();
+                                return;
+                            }
+
+                            ProcessLink(links[d]);
+                        }
+                    }
+                    else if(key == "photos")
+                    {
+                        List<object> links = (List<object>)temp.Values.ElementAt(i);
+                        for(int l = 0; l < links.Count;l++)
+                        {
+                            Dictionary<string, object> dict = (Dictionary<string, object>)links[l];
+                            for (int d = 0; d < dict.Count; d++)
+                            {
+                                string photoKey = dict.ElementAt(d).Key;
+                                string photoUrl = dict.ElementAt(d).Value.ToString();
+
+                                if(photoKey == "photo-url-1280" || photoKey == "photo-url-500" || photoKey == "photo-url-400" || photoKey == "photo-url-250" || photoKey == "photo-url-100" || photoKey == "photo-url-75")
+                                {
+                                    Add(photoUrl);
+                                    break;
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

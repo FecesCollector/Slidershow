@@ -39,6 +39,7 @@ namespace Slidershow
             this.url = url;
             name = GetName();
 
+            Console.WriteLine("Created downloader (" + url + ")");
             Initialize();
         }
 
@@ -63,6 +64,7 @@ namespace Slidershow
 
         public void ProcessLink(string url)
         {
+            Console.WriteLine("Process link: " + url);
             for(int i = 0;i < Program.extratorTypes.Count - 1;i++)
             {
                 bool match = Program.extratorTypes[i].Match(url);
@@ -170,6 +172,14 @@ namespace Slidershow
             return linksFound;
         }
 
+        public static List<string> FindLinks(string text)
+        {
+            HtmlDocument document = new HtmlDocument();
+            document.LoadHtml(text);
+
+            return FindLinks(document);
+        }
+
         public static List<string> FindImages(string url)
         {
             return FindContent(url, "img", "src");
@@ -222,8 +232,15 @@ namespace Slidershow
             };
             HtmlDocument document = new HtmlDocument();
 
-            document.LoadHtml(client.DownloadString(url));
-            return document;
+            try
+            {
+                document.LoadHtml(client.DownloadString(url));
+                return document;
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }

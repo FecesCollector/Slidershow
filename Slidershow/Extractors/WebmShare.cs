@@ -20,16 +20,10 @@ namespace Slidershow.Extractors
                 if (isWebm && content[i].EndsWith(".webm"))
                 {
                     images.Add("http:" + content[i]);
-
-                    Console.Clear();
-                    Console.WriteLine("Found: " + content[i]);
                 }
                 else if (!isWebm && content[i].EndsWith(".mp4"))
                 {
                     images.Add("http:" + content[i]);
-                    Console.Clear();
-
-                    Console.WriteLine("Found: " + content[i]);
                 }
             }
 

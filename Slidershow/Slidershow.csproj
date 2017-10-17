@@ -66,6 +66,7 @@
     <Compile Include="Downloader.cs" />
     <Compile Include="Downloaders\EHentai.cs" />
     <Compile Include="Downloaders\GenericDownloader.cs" />
+    <Compile Include="Downloaders\Imgur.cs" />
     <Compile Include="Downloaders\Tumblr.cs" />
     <Compile Include="Extractor.cs" />
     <Compile Include="Extractors\Gelbooru.cs" />
@@ -76,6 +77,7 @@
     <Compile Include="Extractors\Tumblr.cs" />
     <Compile Include="Extractors\WebmShare.cs" />
     <Compile Include="Gallery.cs" />
+    <Compile Include="Helper.cs" />
     <Compile Include="ImageForm.cs">
       <SubType>Form</SubType>
     </Compile>

@@ -4,36 +4,49 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Hammock;
-using Hammock.Web;
-using System.IO;
 using Hammock.Serialization;
 using Hammock.Model;
 using Hammock.Streaming;
 
-namespace Slidershow.Extractors
+namespace Slidershow.Downloaders
 {
-    public class Imgur : Extractor
+    public class Imgur : Downloader
     {
-        public override bool Match(string url)
+        bool searching;
+
+        public override bool IsSearching()
         {
-            return url.Contains("imgur.com") && !url.Contains("domain");
+            return searching;
         }
 
-        public override List<string> GetImages(string url)
+        public override string GetName()
         {
-            List<string> images = new List<string>();
+            return System.IO.Path.GetFileNameWithoutExtension(url);
+        }
 
+        public override bool Matches(string url)
+        {
+            return url.Contains("imgur.com/");
+        }
+
+        public override void Search()
+        {
             bool isAlbum = url.Contains("/a/");
             bool isDirect = url.Contains("i.imgur.com");
             RestClient client = new RestClient();
             if (isDirect)
             {
-                images.Add(url);
-                return images;
+                Add(url);
+
+                if (!searching)
+                {
+                    Download();
+                    return;
+                }
             }
             else
             {
-                string id = Path.GetFileName(url);
+                string id = GetName();
                 if (isAlbum)
                 {
                     client.Authority = "https://api.imgur.com/3/album/" + id + "/images";
@@ -45,9 +58,9 @@ namespace Slidershow.Extractors
             }
 
             RestRequest request = new RestRequest();
-            request.AddHeader("Authorization", "Client-ID b13daf267e945c6");
-
-            var response = JsonParser.FromJson(client.Request(request).Content);
+            request.AddHeader("authorization", "Client-ID b13daf267e945c6");
+            string json = client.Request(request).Content;
+            var response = JsonParser.FromJson(json);
 
             if (isAlbum)
             {
@@ -62,7 +75,13 @@ namespace Slidershow.Extractors
                         {
                             string image = line.Substring(7);
                             image = image.Substring(0, image.Length - 1);
-                            images.Add(image);
+                            Add(image);
+
+                            if (!searching)
+                            {
+                                Download();
+                                return;
+                            }
                         }
                     }
                 }
@@ -77,12 +96,37 @@ namespace Slidershow.Extractors
                     {
                         string image = line.Substring(7);
                         image = image.Substring(0, image.Length - 1);
-                        images.Add(image);
+                        Add(image);
+
+                        if (!searching)
+                        {
+                            Download();
+                            return;
+                        }
                     }
                 }
             }
+            
+            Download();
+        }
 
-            return images;
+        public override void Stop()
+        {
+            if (searching)
+            {
+                searching = false;
+            }
+            else
+            {
+                Finish(downloads);
+            }
+        }
+
+        protected override void Initialize()
+        {
+            base.Initialize();
+
+            searching = true;
         }
     }
 }
